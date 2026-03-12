@@ -463,6 +463,39 @@
             .stat-group h3 { text-align: left; }
             .footer-title-card { align-self: center; transform: rotate(0); margin-bottom: 2rem; }
         }
+
+        /* Infinite Slider */
+        .infinite-slider {
+            background: var(--header-border);
+            color: var(--card-bg);
+            padding: 1rem 0;
+            overflow: hidden;
+            white-space: nowrap;
+            position: relative;
+            z-index: 10;
+            border-top: 2px solid var(--text-main);
+            border-bottom: 2px solid var(--text-main);
+        }
+        .slider-track {
+            display: inline-block;
+            animation: scroll 20s linear infinite;
+        }
+        .slider-item {
+            display: inline-block;
+            font-size: 1.2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            padding: 0 3rem;
+            font-family: var(--font-heading);
+            letter-spacing: 2px;
+        }
+        @keyframes scroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+        @media (max-width: 768px) {
+            .slider-item { font-size: 0.9rem; padding: 0 1.5rem; }
+        }
     </style>
 </head>
 <body>
@@ -476,7 +509,28 @@
             <p>Browse honest, anonymous feedback from<br>professionals across industries.</p>
         </div>
     </header>
+    <div class="infinite-slider">
+        <div class="slider-track" id="sliderTrack">
+            <!-- Items duplicated for seamless loop -->
+            <span class="slider-item">Architect</span>
+            <span class="slider-item">Chef</span>
+            <span class="slider-item">Software Engineer</span>
+            <span class="slider-item">Graphic Designer</span>
+            <span class="slider-item">Journalist</span>
+            
+            <span class="slider-item">Architect</span>
+            <span class="slider-item">Chef</span>
+            <span class="slider-item">Software Engineer</span>
+            <span class="slider-item">Graphic Designer</span>
+            <span class="slider-item">Journalist</span>
 
+            <span class="slider-item">Architect</span>
+            <span class="slider-item">Chef</span>
+            <span class="slider-item">Software Engineer</span>
+            <span class="slider-item">Graphic Designer</span>
+            <span class="slider-item">Journalist</span>
+        </div>
+    </div>
     <div class="main-wrapper">
         <div class="container">
             <div class="top-bar">
