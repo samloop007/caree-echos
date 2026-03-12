@@ -158,7 +158,9 @@
         }
         .tabs-container {
             display: flex; overflow-x: auto; scrollbar-width: none; flex: 1;
+            scroll-behavior: smooth;
         }
+        .tabs-container.no-smooth { scroll-behavior: auto !important; }
         .tabs-container::-webkit-scrollbar { display: none; }
         .tab {
             display: flex; align-items: center; gap: 0.5rem;
@@ -463,39 +465,6 @@
             .stat-group h3 { text-align: left; }
             .footer-title-card { align-self: center; transform: rotate(0); margin-bottom: 2rem; }
         }
-
-        /* Infinite Slider */
-        .infinite-slider {
-            background: var(--header-border);
-            color: var(--card-bg);
-            padding: 1rem 0;
-            overflow: hidden;
-            white-space: nowrap;
-            position: relative;
-            z-index: 10;
-            border-top: 2px solid var(--text-main);
-            border-bottom: 2px solid var(--text-main);
-        }
-        .slider-track {
-            display: inline-block;
-            animation: scroll 20s linear infinite;
-        }
-        .slider-item {
-            display: inline-block;
-            font-size: 1.2rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            padding: 0 3rem;
-            font-family: var(--font-heading);
-            letter-spacing: 2px;
-        }
-        @keyframes scroll {
-            from { transform: translateX(0); }
-            to { transform: translateX(-50%); }
-        }
-        @media (max-width: 768px) {
-            .slider-item { font-size: 0.9rem; padding: 0 1.5rem; }
-        }
     </style>
 </head>
 <body>
@@ -509,28 +478,7 @@
             <p>Browse honest, anonymous feedback from<br>professionals across industries.</p>
         </div>
     </header>
-    <div class="infinite-slider">
-        <div class="slider-track" id="sliderTrack">
-            <!-- Items duplicated for seamless loop -->
-            <span class="slider-item">Architect</span>
-            <span class="slider-item">Chef</span>
-            <span class="slider-item">Software Engineer</span>
-            <span class="slider-item">Graphic Designer</span>
-            <span class="slider-item">Journalist</span>
-            
-            <span class="slider-item">Architect</span>
-            <span class="slider-item">Chef</span>
-            <span class="slider-item">Software Engineer</span>
-            <span class="slider-item">Graphic Designer</span>
-            <span class="slider-item">Journalist</span>
 
-            <span class="slider-item">Architect</span>
-            <span class="slider-item">Chef</span>
-            <span class="slider-item">Software Engineer</span>
-            <span class="slider-item">Graphic Designer</span>
-            <span class="slider-item">Journalist</span>
-        </div>
-    </div>
     <div class="main-wrapper">
         <div class="container">
             <div class="top-bar">
@@ -542,7 +490,7 @@
                 <div class="tabs-container" id="tabsContainer">
                     <!-- Tabs rendered by JS -->
                 </div>
-                <button class="tabs-arrow" aria-label="Scroll tabs right" onclick="document.getElementById('tabsContainer').scrollBy({left: 150, behavior: 'smooth'})">
+                <button class="tabs-arrow" id="tabsArrow" aria-label="Scroll tabs right">
                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"/></svg>
                 </button>
             </div>
@@ -714,11 +662,13 @@
         // State
         let appData = JSON.parse(localStorage.getItem('careerEchosData')) || defaultData;
         let activeTab = "Architect";
+        let isInfiniteScrolling = false;
 
         // DOM Elements
         const tabsContainer = document.getElementById('tabsContainer');
         const mainContent = document.getElementById('mainContent');
         const searchInput = document.getElementById('searchInput');
+        const tabsArrow = document.getElementById('tabsArrow');
         
         const modal = document.getElementById('shareModal');
         const btnShare = document.getElementById('btnShareExperience');
@@ -731,6 +681,39 @@
         searchInput.addEventListener('input', (e) => {
             const val = e.target.value.toLowerCase();
             renderTabs(val);
+        });
+
+        // Tabs Infinity Logic
+        tabsContainer.addEventListener('scroll', () => {
+            if (isInfiniteScrolling) return;
+            const scrollLeft = tabsContainer.scrollLeft;
+            const scrollWidth = tabsContainer.scrollWidth;
+            const containerWidth = tabsContainer.offsetWidth;
+
+            // Simple Jump logic for infinite effect
+            if (scrollLeft <= 5) {
+                // Jump to middle
+                isInfiniteScrolling = true;
+                tabsContainer.classList.add('no-smooth');
+                tabsContainer.scrollLeft = scrollWidth / 3;
+                setTimeout(() => {
+                    tabsContainer.classList.remove('no-smooth');
+                    isInfiniteScrolling = false;
+                }, 50);
+            } else if (scrollLeft + containerWidth >= scrollWidth - 5) {
+                // Jump to middle
+                isInfiniteScrolling = true;
+                tabsContainer.classList.add('no-smooth');
+                tabsContainer.scrollLeft = scrollWidth / 3;
+                setTimeout(() => {
+                    tabsContainer.classList.remove('no-smooth');
+                    isInfiniteScrolling = false;
+                }, 50);
+            }
+        });
+
+        tabsArrow.addEventListener('click', () => {
+            tabsContainer.scrollBy({ left: 200, behavior: 'smooth' });
         });
 
         // Init
@@ -769,18 +752,31 @@
                 return;
             }
 
-            keys.forEach(key => {
+            // Triple the keys for infinite effect
+            const tripleKeys = [...keys, ...keys, ...keys];
+            
+            tripleKeys.forEach((key, index) => {
                 const btn = document.createElement('button');
                 btn.className = `tab ${key === activeTab ? 'active' : ''}`;
                 btn.innerHTML = `${icons[key] || icons["Journalist"]} ${key}`;
                 btn.onclick = () => {
                     activeTab = key;
-                    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-                    btn.classList.add('active');
+                    document.querySelectorAll('.tab').forEach(t => {
+                        const tKey = t.innerText.trim();
+                        t.classList.toggle('active', tKey === key);
+                    });
                     renderContent();
+                    // Scroll to clicked tab? Optional.
                 };
                 tabsContainer.appendChild(btn);
             });
+
+            // Set initial position to middle set
+            setTimeout(() => {
+                tabsContainer.classList.add('no-smooth');
+                tabsContainer.scrollLeft = tabsContainer.scrollWidth / 3;
+                tabsContainer.classList.remove('no-smooth');
+            }, 0);
         }
 
         function renderContent() {
